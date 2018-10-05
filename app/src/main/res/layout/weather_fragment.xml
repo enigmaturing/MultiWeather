@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/imageview_weathericon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/wsymbol_0001_sunny"/>
+    <TextView
+        android:id="@+id/textview_temperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/imageview_weathericon"
+        android:layout_marginLeft="6dp"
+        android:textSize="26dp"
+        android:textStyle="bold"/>
+    <TextView
+        android:id="@+id/textview_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/imageview_weathericon"
+        android:layout_below="@id/textview_temperature"
+        android:layout_marginLeft="6dp"
+        android:textSize="16dp"/>
+    <TextView
+        android:id="@+id/textview_weatherprovider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageview_weathericon"
+        android:textSize="9dp"/>
+</RelativeLayout>
