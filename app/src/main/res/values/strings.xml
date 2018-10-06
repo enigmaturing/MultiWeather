@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">MultiWeatherApp</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string-array name="provider_names">
+        <item>OpenWeatherMap</item>
+        <item>World Weather Online</item>
+        <item>Dummy Weather Service</item>
+        <item>Servlet Weather Service</item>
+    </string-array>
+    <string-array name="class_names">
+        <item>OpenWeatherMapAPI</item>
+        <item>WorldWeatherOnlineAPI</item>
+        <item>DummyWeatherAPI</item>
+        <item>ServletWeatherAPI</item>
+    </string-array>
 </resources>

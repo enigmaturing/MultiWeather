@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Allgemeine Einstellungen">
+        <CheckBoxPreference
+            android:title="Automatische Standortbestimmung"
+            android:key="use_gps"
+            android:defaultValue="false" />
+        <EditTextPreference
+            android:title="Manuelle Standorteingabe"
+            android:key="location_name"/>
+        <ListPreference
+            android:title="Wetterdienst"
+            android:key="weather_provider_class"
+            android:defaultValue="OpenWeatherMapAPI"
+            android:entries="@array/provider_names"
+            android:entryValues="@array/class_names"/>
+    </PreferenceCategory>
+</PreferenceScreen>

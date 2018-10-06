@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textview_hello"
-        android:text="Hello World!"/>
+        android:text="@string/hello_world"/>
 
     <fragment
         android:name="android.and09.multiweatherapp.WeatherFragment"
@@ -22,5 +22,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/weater_fragment"
         android:layout_below="@id/textview_hello"/>
+
+    <fragment
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:name="android.and09.multiweatherapp.WeatherPreferenceFragment"
+        android:id="@+id/weather_preference_fragment"
+        android:layout_below="@id/weater_fragment"/>
 
 </RelativeLayout>

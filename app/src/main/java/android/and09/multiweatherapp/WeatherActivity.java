@@ -54,7 +54,7 @@ public class WeatherActivity extends AppCompatActivity {
             // We create an instance of our api here, not in the main thread
             IWeatherAPI api = null;
             try{
-                api = OpenWeatherMapAPI.fromLocationName("Damstadt");
+                api = OpenWeatherMapAPI.fromLocationName("Darmstadt");
             }catch (Exception ex){
                 Log.e(getClass().getSimpleName(), ex.toString());
             }
