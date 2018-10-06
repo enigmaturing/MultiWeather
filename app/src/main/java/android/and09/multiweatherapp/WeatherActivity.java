@@ -1,7 +1,9 @@
 package android.and09.multiweatherapp;
 
 import android.and09.weatherapi.*;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -51,10 +53,17 @@ public class WeatherActivity extends AppCompatActivity {
 
         @Override
         protected IWeatherAPI doInBackground(Void... voids) {
+            // We collect the location back from the SharedPrefrences
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+            String locationName = prefs.getString("location_name", "");
+            String weatherProviderClass = prefs.getString("weather_provider_class", "OpenWeatherMapAPI");
             // We create an instance of our api here, not in the main thread
             IWeatherAPI api = null;
             try{
-                api = OpenWeatherMapAPI.fromLocationName("Darmstadt");
+                // Solution exposed in  AND10D S.13, using a fix provider:
+                // api = OpenWeatherMapAPI.fromLocationName(locationName);
+                // Solution exposed in AND10D S.36, in order to get the corresponding api depending on the selected provider:
+                api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName);
             }catch (Exception ex){
                 Log.e(getClass().getSimpleName(), ex.toString());
             }
