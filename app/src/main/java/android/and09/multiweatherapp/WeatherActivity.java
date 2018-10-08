@@ -4,6 +4,10 @@ import android.and09.weatherapi.*;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,14 +15,72 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 public class WeatherActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_weather);
+        setContentView(R.layout.activity_weather_actionbar_tabs);
+        //AND10D S42: Implementing Tab-Navigation with actionbar (1st variant)
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        //AND10D S42: Adding a first tab
+        actionBar.addTab(actionBar.newTab().setText("Wetter").setTabListener(new ActionBar.TabListener(){
+
+            @Override
+            public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+                FragmentManager manager = WeatherActivity.this.getSupportFragmentManager();
+                Fragment fragment = manager.findFragmentByTag(WeatherFragment.class.getName());
+                if (fragment == null){
+                    //add fragment to the FragmentTransaction, if the fragment was not still created
+                    ft.add(R.id.content_frame, new WeatherFragment(), WeatherFragment.class.getName());
+                }else{
+                    //just show the fragment in the FragmentTransaction, if the fragment was already created
+                    ft.show(fragment);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                FragmentManager manager = WeatherActivity.this.getSupportFragmentManager();
+                Fragment fragment = manager.findFragmentByTag(WeatherFragment.class.getName());
+                ft.hide(fragment);
+            }
+
+            @Override
+            public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+
+            }
+        }));
+        //AND10D S42: Adding a second tab
+        actionBar.addTab(actionBar.newTab().setText("Einstellungen").setTabListener(new ActionBar.TabListener(){
+
+            @Override
+            public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+                FragmentManager manager = WeatherActivity.this.getSupportFragmentManager();
+                Fragment fragment = manager.findFragmentByTag(WeatherPreferenceFragment.class.getName());
+                if (fragment == null){
+                    //add fragment to the FragmentTransaction, if the fragment was not still created
+                    ft.add(R.id.content_frame, new WeatherPreferenceFragment(), WeatherPreferenceFragment.class.getName());
+                }else{
+                    //just show the fragment in the FragmentTransaction, if the fragment was already created
+                    ft.show(fragment);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                FragmentManager manager = WeatherActivity.this.getSupportFragmentManager();
+                Fragment fragment = manager.findFragmentByTag(WeatherPreferenceFragment.class.getName());
+                ft.hide(fragment);
+            }
+
+            @Override
+            public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+
+            }
+        }));
+
         // Test of the weather-api in a thread.
         // In order to do that, we create an instance of the inner class WeatherRequestTask, that
         // extends the abstract class AsyncTask
