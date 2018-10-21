@@ -2,6 +2,8 @@ package android.and09.multiweatherapp;
 
 import android.and09.weatherapi.*;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.ConditionVariable;
 import android.preference.PreferenceManager;
@@ -17,12 +19,22 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.io.InputStream;
 
 public class WeatherActivity extends AppCompatActivity {
 
-    //AND10D S.54
+    // AND10D S.54 What follows is an instancevariable of the class android.os.ConditionVariable.
+    // We will need that in order to avoid bugs cause by Race Conditions related to the Worker-Thread
     public ConditionVariable fragmentReady;
+    // AND10D S.58 What follows is  a Instancevariable, to save an instance of type:
+    // OnSharedPreferenceChangeListener
+    // We need it as a Strong Reference that will not be deleted by the Garbage Collector (see AND10D S.58)
+    // in order to listen to changes on the SharedPreferences
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceListener;
+    private boolean prefsChanged = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +55,14 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
+                // We check if before changing the Tab to weather (position 0), the also
+                // the preferences where changed. Only in that case, we renew the data displayed
+                // the fragment by calling the Working-Thread
+                if (tab.getPosition() == 0 && prefsChanged == true){
+                    WeatherRequestTask task = new WeatherRequestTask();
+                    task.execute();
+                    prefsChanged = false;
+                }
             }
 
             @Override
@@ -55,7 +75,7 @@ public class WeatherActivity extends AppCompatActivity {
 
             }
         });
-        //Solving problem described on AND10D S.52 -> Swipe should also change the status of the button
+        // Solving problem described on AND10D S.52 -> Swipe should also change the status of the button
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         // Test of the weather-api in a thread.
         // In order to do that, we create an instance of the inner class WeatherRequestTask, that
@@ -63,6 +83,23 @@ public class WeatherActivity extends AppCompatActivity {
         WeatherRequestTask task = new WeatherRequestTask();
         // And then we call its method execute(), to fire the thread
         task.execute();
+
+        // AND10D S.58 Creating an instance of the interface OnSharedPreferenceChangeListener, in
+        // order to be able to catch on changes on the SharedPreferences
+        sharedPreferenceListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d(getClass().getSimpleName(), "Einstellungen wurden gändert");
+                prefsChanged = true;
+                // We check here if it was the Checkbox "AutomatischeStandrotbestimmung", the option
+                // that was changed, in order to get geocordinates in that case
+                if (key.equals("use_gps")){
+                    // TODO: CheckBox auswerten und ggfs. Standortbestimmung starten oder stopen
+                }
+            }
+        };
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceListener);
 
 
         /*1st variant of implementing Tab-Navigation: With action bar
@@ -222,18 +259,23 @@ public class WeatherActivity extends AppCompatActivity {
                 }
                 // In case an api object was sucessfully created by doInBackground:
                 try {
-                    //Show data collected by the api on logcat
+                    // Show data collected by the api on logcat
                     Log.d(getClass().getSimpleName(), "Temperatur: " + api.getTemperature());
                     Log.d(getClass().getSimpleName(), "Beschreibung: " + api.getDescription());
                     Log.d(getClass().getSimpleName(), "Provider: " + api.getProviderInfo());
                     Log.d(getClass().getSimpleName(), "Icon: " + api.getIconPath());
-                    //Show data collected by te api on the fragment
+                    // Show data collected by te api on the fragment
                     TextView textViewTemperature = (TextView) WeatherActivity.this.findViewById(R.id.textview_temperature);
                     textViewTemperature.setText((int) api.getTemperature() + "ºC");
                     TextView textViewDescription = (TextView) WeatherActivity.this.findViewById(R.id.textview_description);
                     textViewDescription.setText(api.getDescription());
                     TextView textViewProvider = (TextView) WeatherActivity.this.findViewById(R.id.textview_weatherprovider);
                     textViewProvider.setText(api.getProviderInfo());
+                    // AND10D S.60 Update the weather image
+                    InputStream bitmapStream = getAssets().open(api.getIconPath());
+                    Bitmap bitmap = BitmapFactory.decodeStream(bitmapStream);
+                    ImageView imageView = (ImageView) WeatherActivity.this.findViewById(R.id.imageview_weathericon);
+                    imageView.setImageBitmap(bitmap);
                 } catch (Exception ex) {
                     Log.e(getClass().getSimpleName(), ex.toString());
                     try {

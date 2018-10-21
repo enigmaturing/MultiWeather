@@ -7,8 +7,9 @@
     android:padding="16px">
     <ImageView
         android:id="@+id/imageview_weathericon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="fitXY"
         android:src="@drawable/wsymbol_0001_sunny"/>
     <TextView
         android:id="@+id/textview_temperature"
