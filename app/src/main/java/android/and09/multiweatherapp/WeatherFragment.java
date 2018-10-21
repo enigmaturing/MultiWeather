@@ -11,4 +11,11 @@ public class WeatherFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         return inflater.inflate(R.layout.weather_fragment, container, false);
     }
+
+    //AND10D S55 -> We unblock the ConditionVariable from the class WeatherActivity, once the Weather
+    //Fragment is initialized. That is detected when Android calls the Method onViewCreated()
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState){
+        ((WeatherActivity) getActivity()).fragmentReady.open();
+    }
 }

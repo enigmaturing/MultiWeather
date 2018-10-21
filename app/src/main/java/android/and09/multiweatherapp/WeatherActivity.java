@@ -3,10 +3,14 @@ package android.and09.multiweatherapp;
 import android.and09.weatherapi.*;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.ConditionVariable;
 import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,9 +21,51 @@ import android.widget.TextView;
 
 public class WeatherActivity extends AppCompatActivity {
 
+    //AND10D S.54
+    public ConditionVariable fragmentReady;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //2nd variant of implemeting Tab-Navigation: With TabLayout (AND10D S46)
+        fragmentReady = new ConditionVariable();
+        setContentView(R.layout.activity_weather_tablayout);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.addTab(tabLayout.newTab().setText("Wetter"));
+        tabLayout.addTab(tabLayout.newTab().setText("Einstellungen"));
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+        //AND10D S.51:
+        WeatherPagerAdapter adapter = new WeatherPagerAdapter(getSupportFragmentManager());
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.view_pager);
+        viewPager.setAdapter(adapter);
+        //EventHandler to identify the selection of a new tab AND10D Abschn.2.3.2
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+        //Solving problem described on AND10D S.52 -> Swipe should also change the status of the button
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        // Test of the weather-api in a thread.
+        // In order to do that, we create an instance of the inner class WeatherRequestTask, that
+        // extends the abstract class AsyncTask
+        WeatherRequestTask task = new WeatherRequestTask();
+        // And then we call its method execute(), to fire the thread
+        task.execute();
+
+
+        /*1st variant of implementing Tab-Navigation: With action bar
         setContentView(R.layout.activity_weather_actionbar_tabs);
         //AND10D S42: Implementing Tab-Navigation with actionbar (1st variant)
         ActionBar actionBar = getSupportActionBar();
@@ -89,6 +135,7 @@ public class WeatherActivity extends AppCompatActivity {
         task.execute();
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -111,57 +158,90 @@ public class WeatherActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class WeatherRequestTask extends AsyncTask<Void, Void, IWeatherAPI> {
+    */
 
-        @Override
-        protected IWeatherAPI doInBackground(Void... voids) {
-            // We collect the location back from the SharedPrefrences
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
-            String locationName = prefs.getString("location_name", "");
-            String weatherProviderClass = prefs.getString("weather_provider_class", "OpenWeatherMapAPI");
-            // We create an instance of our api here, not in the main thread
-            IWeatherAPI api = null;
-            try{
-                // Solution exposed in  AND10D S.13, using a fix provider:
-                // api = OpenWeatherMapAPI.fromLocationName(locationName);
-                // Solution exposed in AND10D S.36, in order to get the corresponding api depending on the selected provider:
-                api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName);
-            }catch (Exception ex){
-                Log.e(getClass().getSimpleName(), ex.toString());
-            }
-            return api;
+    }
+
+    public static class WeatherPagerAdapter extends FragmentStatePagerAdapter {
+
+        static  final int NUM_TABS = 2;
+
+        public WeatherPagerAdapter(FragmentManager fm){
+            super(fm);
         }
 
         @Override
-        protected void onPostExecute(IWeatherAPI api){
-            // It is possible that the method doInBackground returns no api object, caused for example
-            // by a missing internet connection. We have to contemplate that case:
-            if (api == null){
-                Log.e(getClass().getSimpleName(), "Rückgabe von doInBackground ist null: gibt es keine Interneverbindung?");
-                return;
+        public Fragment getItem(int position) {
+            switch (position){
+                case 0:
+                    return new WeatherFragment();
+                case 1:
+                    return new WeatherPreferenceFragment();
+                default:
+                    return null;
             }
-            // In case an api object was sucessfully created by doInBackground:
-            try{
-                //Show data collected by the api on logcat
-                Log.d(getClass().getSimpleName(), "Temperatur: " + api.getTemperature());
-                Log.d(getClass().getSimpleName(), "Beschreibung: " + api.getDescription());
-                Log.d(getClass().getSimpleName(), "Provider: " + api.getProviderInfo());
-                Log.d(getClass().getSimpleName(), "Icon: " + api.getIconPath());
-                //Show data collected by te api on the fragment
-                TextView textViewTemperature = (TextView) WeatherActivity.this.findViewById(R.id.textview_temperature);
-                textViewTemperature.setText((int) api.getTemperature() + "ºC");
-                TextView textViewDescription = (TextView) WeatherActivity.this.findViewById(R.id.textview_description);
-                textViewDescription.setText(api.getDescription());
-                TextView textViewProvider = (TextView) WeatherActivity.this.findViewById(R.id.textview_weatherprovider);
-                textViewProvider.setText(api.getProviderInfo());
-            }catch(Exception ex){
-                Log.e(getClass().getSimpleName(), ex.toString());
+
+        }
+
+        @Override
+        public int getCount() {
+            return NUM_TABS;
+        }
+    }
+
+     public class WeatherRequestTask extends AsyncTask<Void, Void, IWeatherAPI> {
+
+            @Override
+            protected IWeatherAPI doInBackground(Void... voids) {
+                // We collect the location back from the SharedPrefrences
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                String locationName = prefs.getString("location_name", "");
+                String weatherProviderClass = prefs.getString("weather_provider_class", "OpenWeatherMapAPI");
+                // We create an instance of our api here, not in the main thread
+                IWeatherAPI api = null;
                 try {
-                    Log.e(getClass().getSimpleName(), api.getError());
-                }catch (Exception innerEx){
-                    Log.e(getClass().getSimpleName(), innerEx.toString());
+                    // Solution exposed in  AND10D S.13, using a fix provider:
+                    // api = OpenWeatherMapAPI.fromLocationName(locationName);
+                    // Solution exposed in AND10D S.36, in order to get the corresponding api depending on the selected provider:
+                    api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName);
+                } catch (Exception ex) {
+                    Log.e(getClass().getSimpleName(), ex.toString());
+                }
+                //AND10D S.54 -> We block the Worker-Thread till the Wetter-Fragment has been initialized
+                fragmentReady.block();
+                return api;
+            }
+
+            @Override
+            protected void onPostExecute(IWeatherAPI api) {
+                // It is possible that the method doInBackground returns no api object, caused for example
+                // by a missing internet connection. We have to contemplate that case:
+                if (api == null) {
+                    Log.e(getClass().getSimpleName(), "Rückgabe von doInBackground ist null: gibt es keine Interneverbindung?");
+                    return;
+                }
+                // In case an api object was sucessfully created by doInBackground:
+                try {
+                    //Show data collected by the api on logcat
+                    Log.d(getClass().getSimpleName(), "Temperatur: " + api.getTemperature());
+                    Log.d(getClass().getSimpleName(), "Beschreibung: " + api.getDescription());
+                    Log.d(getClass().getSimpleName(), "Provider: " + api.getProviderInfo());
+                    Log.d(getClass().getSimpleName(), "Icon: " + api.getIconPath());
+                    //Show data collected by te api on the fragment
+                    TextView textViewTemperature = (TextView) WeatherActivity.this.findViewById(R.id.textview_temperature);
+                    textViewTemperature.setText((int) api.getTemperature() + "ºC");
+                    TextView textViewDescription = (TextView) WeatherActivity.this.findViewById(R.id.textview_description);
+                    textViewDescription.setText(api.getDescription());
+                    TextView textViewProvider = (TextView) WeatherActivity.this.findViewById(R.id.textview_weatherprovider);
+                    textViewProvider.setText(api.getProviderInfo());
+                } catch (Exception ex) {
+                    Log.e(getClass().getSimpleName(), ex.toString());
+                    try {
+                        Log.e(getClass().getSimpleName(), api.getError());
+                    } catch (Exception innerEx) {
+                        Log.e(getClass().getSimpleName(), innerEx.toString());
+                    }
                 }
             }
         }
-    }
 }
