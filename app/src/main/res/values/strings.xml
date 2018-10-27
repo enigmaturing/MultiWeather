@@ -14,4 +14,8 @@
         <item>DummyWeatherAPI</item>
         <item>ServletWeatherAPI</item>
     </string-array>
+    <string name="error_no_answer">Netzwerkdiest antwortet nicht. Bitte überprufen Sie Ihre
+    Netwerkverbindung und Netzwerkeinstellungen.</string>
+    <string name="error_unknown">Unbekannter Fehler bei der Verarbeitung der Daten. Bitte schalten
+    Sie auf einen anderen Service um.</string>
 </resources>

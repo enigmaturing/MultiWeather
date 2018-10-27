@@ -21,6 +21,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
 
 import java.io.InputStream;
 
@@ -255,6 +258,7 @@ public class WeatherActivity extends AppCompatActivity {
                 // by a missing internet connection. We have to contemplate that case:
                 if (api == null) {
                     Log.e(getClass().getSimpleName(), "Rückgabe von doInBackground ist null: gibt es keine Interneverbindung?");
+                    Toast.makeText(WeatherActivity.this, R.string.error_no_answer, Toast.LENGTH_LONG).show();
                     return;
                 }
                 // In case an api object was sucessfully created by doInBackground:
@@ -276,13 +280,20 @@ public class WeatherActivity extends AppCompatActivity {
                     Bitmap bitmap = BitmapFactory.decodeStream(bitmapStream);
                     ImageView imageView = (ImageView) WeatherActivity.this.findViewById(R.id.imageview_weathericon);
                     imageView.setImageBitmap(bitmap);
-                } catch (Exception ex) {
+                // AND10D S.66 In case there was a exception on populating the data from server:
+                // Catch for Exceptions of type JSONException:
+                } catch (JSONException ex) {
                     Log.e(getClass().getSimpleName(), ex.toString());
                     try {
                         Log.e(getClass().getSimpleName(), api.getError());
+                        Toast.makeText(WeatherActivity.this, api.getError(), Toast.LENGTH_LONG).show();
                     } catch (Exception innerEx) {
                         Log.e(getClass().getSimpleName(), innerEx.toString());
+                        Toast.makeText(WeatherActivity.this, R.string.error_unknown, Toast.LENGTH_LONG).show();
                     }
+                // Catch for general Exceptions, not of type JSONException:
+                } catch (Exception ex){
+                    Log.e(getClass().getSimpleName(), ex.toString());
                 }
             }
         }
