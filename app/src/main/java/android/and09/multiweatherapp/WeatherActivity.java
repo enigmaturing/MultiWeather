@@ -1,9 +1,13 @@
 package android.and09.multiweatherapp;
 
 import android.and09.weatherapi.*;
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.ConditionVariable;
 import android.preference.PreferenceManager;
@@ -34,6 +38,14 @@ public class WeatherActivity extends AppCompatActivity {
     // in order to listen to changes on the SharedPreferences
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceListener;
     private boolean prefsChanged = false;
+
+    // AND10D Einsendeaufg. 4: Define an object of the inner class WeatherLocationListener. We
+    // defined this as an inner class of the WeatherActivity, and it implements the interface
+    // android.location.LocationListener, in order to be able to ask for the position of the user
+    private final LocationListener locationListener = new WeatherLocationListener();
+    private int minTime = 5000; //Minimum time between two sets of positions (in ms)
+    private int minDistance = 5; //Minimum distance between two sets of positions (in m)
+    private Location lastLocation = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +89,9 @@ public class WeatherActivity extends AppCompatActivity {
         // Solving problem described on AND10D S.52 -> Swipe should also change the status of the button
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
+        // AND10D Einsendaufg. 4: Depending on the value of the checkbox "use-gps", enable or disable LocationUpdates
+        getCheckBoxStatusAndEnableOrDisableLocationUpdates();
+
         // AND10D S.58 Creating an instance of the interface OnSharedPreferenceChangeListener, in
         // order to be able to catch on changes on the SharedPreferences
         sharedPreferenceListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -87,7 +102,8 @@ public class WeatherActivity extends AppCompatActivity {
                 // We check here if it was the Checkbox "AutomatischeStandrotbestimmung", the option
                 // that was changed, in order to get geocordinates in that case
                 if (key.equals("use_gps")){
-                    // TODO: CheckBox auswerten und ggfs. Standortbestimmung starten oder stopen
+                    // AND10D Einsendaufg. 4: Start location updates depending on the selected value of the checkbox "use gps"
+                    getCheckBoxStatusAndEnableOrDisableLocationUpdates();
                 }
             }
         };
@@ -272,8 +288,17 @@ public class WeatherActivity extends AppCompatActivity {
                     // Solution exposed in  AND10D S.13, using a fix provider:
                     // api = OpenWeatherMapAPI.fromLocationName(locationName);
                     // Solution exposed in AND10D S.36, in order to get the corresponding api depending on the selected provider:
-                    // AND10D Einsendaufg. 3: Provide the IP Address of our private server too
-                    api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName, privateIpAddress);
+                    // AND10D Einsendaufg. 4: Check if there is a last location available and in that case, call the fromLongLat method
+                    // instead of the fromLocationName method. Every time we disable the use_gps checkbox in the settings tab, we
+                    // make lastLocation = null. Therefore, the method fromLocationName will be called always in case the
+                    // user doesn't want to use his actual position.
+                    if (lastLocation != null) {
+                        // AND10D Einsendaufg. 3: Provide the IP Address of our private server too
+                        api = WeatherAPIFactory.fromLatLon(weatherProviderClass, lastLocation.getLatitude(), lastLocation.getLongitude(), privateIpAddress);
+                    }else{
+                        // AND10D Einsendaufg. 3: Provide the IP Address of our private server too
+                        api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName, privateIpAddress);
+                    }
                 } catch (Exception ex) {
                     Log.e(getClass().getSimpleName(), ex.toString());
                 }
@@ -327,4 +352,73 @@ public class WeatherActivity extends AppCompatActivity {
                 }
             }
         }
+
+    // AND10D Einsendeaufg. 4: Implement in an inner class the interface LocationListener, in order
+    // to create an instance of this class to ask for the position of the user.
+    class WeatherLocationListener implements LocationListener {
+        // Do not forget to activate for this app the access to GPS Position on the mobile phone,
+        // after installing it in emulator or the real device. In order to do that, install the app
+        // and then go to Settings (Ajustes) -> Permissions (Permisos) -> Permissions for apps
+        // (Permisos de aplicaciones) -> Y alli activar ubicacion para esta applicacion
+        @Override
+        public void onLocationChanged(Location location) {
+            Log.d(WeatherActivity.this.getClass().getSimpleName(), "Empfangene Geodaten:\n" + location.toString());
+            getLastKnownLocation();
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            getLastKnownLocation();
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLastKnownLocation(){
+        LocationManager locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        try {
+            lastLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }catch(SecurityException ex){
+            Log.d(getClass().getSimpleName(), "Permission fehlt. " + ex.toString());
+            Toast.makeText(WeatherActivity.this, R.string.error_no_permissions, Toast.LENGTH_LONG).show();
+            lastLocation = null;
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getCheckBoxStatusAndEnableOrDisableLocationUpdates(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+        boolean checkBoxUseGps = prefs.getBoolean("use_gps", false);
+        // Activate or deactivate the Location-Updates accroding to the value of the checkbox
+        LocationManager locationManager = (LocationManager) WeatherActivity.this.getSystemService(LOCATION_SERVICE);
+        if (checkBoxUseGps){
+            // We call the method requestLocationUpdate of our instance locationManager in a try-catch
+            // in order to prevent a crash of the app in case the user has deactivated the positionin permission
+            try {
+                // Because we are using NETWORK_PROVIDER as the location provider, we need to declare
+                // two uses-permissions on the AndroidManifest.xml
+                // <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+                // <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+                // We also have to activate the position permision on our smartphone for this app,
+                // in order not to rise a SecurityException
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTime,minDistance, locationListener);
+            } catch (SecurityException ex){
+                Log.d(getClass().getSimpleName(), "Permission fehlt. " + ex.toString());
+                Toast.makeText(WeatherActivity.this, R.string.error_no_permissions, Toast.LENGTH_LONG).show();
+            }
+        }else{
+            locationManager.removeUpdates(locationListener);
+            lastLocation = null;
+        }
+    }
 }
+
+
+

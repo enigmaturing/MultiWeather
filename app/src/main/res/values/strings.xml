@@ -19,4 +19,5 @@
     Netwerkverbindung und Netzwerkeinstellungen.</string>
     <string name="error_unknown">Unbekannter Fehler bei der Verarbeitung der Daten. Bitte schalten
     Sie auf einen anderen Service um.</string>
+    <string name="error_no_permissions">Location permissions nicht vorhanden. Aktivieren sie die Location permissions.</string>
 </resources>

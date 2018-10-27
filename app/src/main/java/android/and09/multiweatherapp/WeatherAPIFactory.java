@@ -24,10 +24,10 @@ public class WeatherAPIFactory {
 
     // We do the same like before but this time based on coordinates
     // AND10D Einsendeaufg. 3: Pass the ip of our private server ae parameter too
-    public static IWeatherAPI fromLongLat(String className, double lat, double lon,  String privateIpAddress) throws Exception {
+    public static IWeatherAPI fromLatLon(String className, double lat, double lon,  String privateIpAddress) throws Exception {
         // Create a class object depending on the desired weather provider
         Class c = Class.forName("android.and09.weatherapi." + className);
-        IWeatherAPI api = (IWeatherAPI) c.getMethod("fromLatLong", double.class, double.class, String.class).invoke(null, lat, lon, privateIpAddress);
+        IWeatherAPI api = (IWeatherAPI) c.getMethod("fromLatLon", double.class, double.class, String.class).invoke(null, lat, lon, privateIpAddress);
         return api;
     }
 }
