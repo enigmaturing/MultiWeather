@@ -210,6 +210,29 @@ public class WeatherActivity extends AppCompatActivity {
         task.execute();
     }
 
+    // AND10D. Einsendaufg.2
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu. This adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_weather, menu);
+        return true;
+    }
+    // AND10D. Einsendaufg.2
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here
+        int id = item.getItemId();
+        if (id == R.id.menu_refresh_weather_data) {
+            // Retrieve data form server in the Background-Thread. Create an instance of the
+            // inner class WeatherRequestTask, that extends the abstract class AsyncTask nd then
+            // we call its method execute(), to fire the Background-Thread
+            WeatherRequestTask task = new WeatherRequestTask();
+            task.execute();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     public static class WeatherPagerAdapter extends FragmentStatePagerAdapter {
 
         static  final int NUM_TABS = 2;

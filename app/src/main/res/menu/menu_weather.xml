@@ -3,8 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".WeatherActivity">
-    <item android:id="@+id/action_settings"
-          android:title="Settings"
-          android:orderInCategory="100"
-          app:showAsAction="never"/>
+    <!-- AND10D. Einsendaufg.2 -->
+    <item android:id="@+id/menu_refresh_weather_data"
+        android:title="@string/menu_refresh_weather_data"
+        android:icon="@drawable/ic_menu_refresh"
+        app:showAsAction="always"/>
 </menu>
