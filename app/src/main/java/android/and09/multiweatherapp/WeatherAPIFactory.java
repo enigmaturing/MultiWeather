@@ -14,19 +14,22 @@ public class WeatherAPIFactory {
     // we make the method static, like expected on a Factory-Class, in order to be able to call
     // it directly by using the name of the class (WeatherAPIFactory) followed to the name of the
     // method (fromLocationName())
-    public static IWeatherAPI fromLocationName(String className, String locationName) throws Exception {
+    // AND10D Einsendeaufg. 3: Pass the ip of our private server ae parameter too
+    public static IWeatherAPI fromLocationName(String className, String locationName, String privateIpAddress) throws Exception {
         // Create a class object depending on the desired weather provider
         Class c = Class.forName("android.and09.weatherapi." + className);
-        IWeatherAPI api = (IWeatherAPI) c.getMethod("fromLocationName", String.class).invoke(null, locationName);
+        IWeatherAPI api = (IWeatherAPI) c.getMethod("fromLocationName", String.class, String.class).invoke(null, locationName, privateIpAddress);
         return api;
     }
 
-    //We do the same like before but this time based on coordinates
-    public static IWeatherAPI fromLongLat(String className, double lat, double lon) throws Exception {
+    // We do the same like before but this time based on coordinates
+    // AND10D Einsendeaufg. 3: Pass the ip of our private server ae parameter too
+    public static IWeatherAPI fromLongLat(String className, double lat, double lon,  String privateIpAddress) throws Exception {
         // Create a class object depending on the desired weather provider
         Class c = Class.forName("android.and09.weatherapi." + className);
-        IWeatherAPI api = (IWeatherAPI) c.getMethod("fromLatLong", double.class, double.class).invoke(null, lat, lon);
+        IWeatherAPI api = (IWeatherAPI) c.getMethod("fromLatLong", double.class, double.class, String.class).invoke(null, lat, lon, privateIpAddress);
         return api;
     }
-
 }
+
+

@@ -9,6 +9,9 @@
         <EditTextPreference
             android:title="Manuelle Standorteingabe"
             android:key="location_name"/>
+        <EditTextPreference
+            android:title="IP Adresse des privaten Servers"
+            android:key="ip_address_private_server"/>
         <ListPreference
             android:title="Wetterdienst"
             android:key="weather_provider_class"
@@ -17,3 +20,7 @@
             android:entryValues="@array/class_names"/>
     </PreferenceCategory>
 </PreferenceScreen>
+
+
+
+

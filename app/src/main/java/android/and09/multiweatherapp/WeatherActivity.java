@@ -11,9 +11,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,9 +20,7 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import org.json.JSONException;
-
 import java.io.InputStream;
 
 public class WeatherActivity extends AppCompatActivity {
@@ -224,7 +220,7 @@ public class WeatherActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.menu_refresh_weather_data) {
             // Retrieve data form server in the Background-Thread. Create an instance of the
-            // inner class WeatherRequestTask, that extends the abstract class AsyncTask nd then
+            // inner class WeatherRequestTask, that extends the abstract class AsyncTask and then
             // we call its method execute(), to fire the Background-Thread
             WeatherRequestTask task = new WeatherRequestTask();
             task.execute();
@@ -268,13 +264,16 @@ public class WeatherActivity extends AppCompatActivity {
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
                 String locationName = prefs.getString("location_name", "");
                 String weatherProviderClass = prefs.getString("weather_provider_class", "OpenWeatherMapAPI");
+                // AND10D Einsendaufg. 3: We collect the ip address for the private server
+                String privateIpAddress = prefs.getString("ip_address_private_server", "http://192.168.2.108:8080");
                 // We create an instance of our api here, not in the main thread
                 IWeatherAPI api = null;
                 try {
                     // Solution exposed in  AND10D S.13, using a fix provider:
                     // api = OpenWeatherMapAPI.fromLocationName(locationName);
                     // Solution exposed in AND10D S.36, in order to get the corresponding api depending on the selected provider:
-                    api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName);
+                    // AND10D Einsendaufg. 3: Provide the IP Address of our private server too
+                    api = WeatherAPIFactory.fromLocationName(weatherProviderClass, locationName, privateIpAddress);
                 } catch (Exception ex) {
                     Log.e(getClass().getSimpleName(), ex.toString());
                 }
