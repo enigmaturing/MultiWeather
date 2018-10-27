@@ -80,12 +80,6 @@ public class WeatherActivity extends AppCompatActivity {
         });
         // Solving problem described on AND10D S.52 -> Swipe should also change the status of the button
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        // Test of the weather-api in a thread.
-        // In order to do that, we create an instance of the inner class WeatherRequestTask, that
-        // extends the abstract class AsyncTask
-        WeatherRequestTask task = new WeatherRequestTask();
-        // And then we call its method execute(), to fire the thread
-        task.execute();
 
         // AND10D S.58 Creating an instance of the interface OnSharedPreferenceChangeListener, in
         // order to be able to catch on changes on the SharedPreferences
@@ -200,6 +194,20 @@ public class WeatherActivity extends AppCompatActivity {
 
     */
 
+    }
+
+    // AND10D S.67 Auf.3.1. Retrieve weather data from the server on the Background-Thread. We call
+    // the Background-Thread from the onResume() Lebenszyklusmethode, so that we refresh the weather data
+    // each time the user brings this activity to the foreground. This way he sees always actual weather
+    // data
+    @Override
+    public void onResume(){
+        super.onResume();
+        // Retrieve data form server in the Background-Thread
+        // Create an instance of the inner class WeatherRequestTask, that
+        // extends the abstract class AsyncTask nd then we call its method execute(), to fire the Background-Thread
+        WeatherRequestTask task = new WeatherRequestTask();
+        task.execute();
     }
 
     public static class WeatherPagerAdapter extends FragmentStatePagerAdapter {
