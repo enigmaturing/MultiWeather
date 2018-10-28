@@ -368,7 +368,6 @@ public class WeatherActivity extends AppCompatActivity {
 
         @Override
         public void onProviderEnabled(String provider) {
-            getLastKnownLocation();
         }
 
         @Override
